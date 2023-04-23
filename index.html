@@ -12,30 +12,31 @@
             margin: 20px;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="armor-stats">
             <h3>Armor Stats</h3>
-            Armor Front: <input type="number" id="armorFront" value="<?php echo htmlspecialchars($_POST['armorFront'] ?? '') ?>"><br>
-            Armor Side: <input type="number" id="armorSide" value="<?php echo htmlspecialchars($_POST['armorSide'] ?? '') ?>"><br>
-            Armor Back: <input type="number" id="armorBack" value="<?php echo htmlspecialchars($_POST['armorBack'] ?? '') ?>"><br>
-            Health Points: <input type="number" id="healthPoints" value="<?php echo htmlspecialchars($_POST['healthPoints'] ?? '') ?>">
+            Armor Front: <input type="number" id="armorFront"><br>
+            Armor Side: <input type="number" id="armorSide"><br>
+            Armor Back: <input type="number" id="armorBack"><br>
+            Health Points: <input type="number" id="healthPoints">
         </div>
 
         <div class="attack-stats">
             <h3>Attack Stats</h3>
-            Range: <input type="number" id="range" value="<?php echo htmlspecialchars($_POST['range'] ?? '') ?>"><br>
+            Range: <input type="number" id="range"><br>
             Attack Angle: <select id="attackAngle">
-                <option value="front"<?php if ($_POST['attackAngle'] == 'front') echo ' selected' ?>>Front</option>
-                <option value="side"<?php if ($_POST['attackAngle'] == 'side') echo ' selected' ?>>Side</option>
-                <option value="back"<?php if ($_POST['attackAngle'] == 'back') echo ' selected' ?>>Back</option>
+                <option value="front">Front</option>
+                <option value="side">Side</option>
+                <option value="back">Back</option>
             </select><br>
-            Penetration Close: <input type="number" id="penetrationClose" value="<?php echo htmlspecialchars($_POST['penetrationClose'] ?? '') ?>"><br>
-            Penetration Middle: <input type="number" id="penetrationMiddle" value="<?php echo htmlspecialchars($_POST['penetrationMiddle'] ?? '') ?>"><br>
-            Penetration Far: <input type="number" id="penetrationFar" value="<?php echo htmlspecialchars($_POST['penetrationFar'] ?? '') ?>"><br>
-            Damage: <input type="number" id="damage" value="<?php echo htmlspecialchars($_POST['damage'] ?? '') ?>"><br>
-            Rounds per minute: <input type="number" id="roundsPerMinute" value="<?php echo htmlspecialchars($_POST['roundsPerMinute'] ?? '') ?>">
+            Penetration Close: <input type="number" id="penetrationClose"><br>
+            Penetration Middle: <input type="number" id="penetrationMiddle"><br>
+            Penetration Far: <input type="number" id="penetrationFar"><br>
+            Damage: <input type="number" id="damage"><br>
+            Rounds per minute: <input type="number" id="roundsPerMinute">
         </div>
     </div>
 
@@ -44,12 +45,10 @@
     </div>
 
     <div id="results">
-        <?php if ($_SERVER['REQUEST_METHOD'] == 'POST') { ?>
-        <p>Penetration Chance: <?php echo $penetrationChance ?>%</p>
-        <p>Shots to Kill: <?php echo $shotsToKill ?></p>
-        <p>Time to Kill: <?php echo $timeToKill ?> seconds</p>
-        <?php } ?>
+        <!-- Results will be displayed here -->
     </div>
+    
+    <canvas id="penetrationChart"></canvas>
 
     <script>
         function simulate() {
@@ -78,12 +77,12 @@
 
             // Calculate penetration based on range
             let penetrationValue;
-            if (range <= 0.2 * range) {
+            if (range <= 20) {
                 penetrationValue = penetrationClose;
-            } else if (range <= 0.5 * range) {
-                penetrationValue = penetrationMiddle;
-            } else {
+            } else if (range > 40) {
                 penetrationValue = penetrationFar;
+            } else {
+                penetrationValue = penetrationMiddle;
             }
 
             // Calculate penetration chance
@@ -94,15 +93,39 @@
                 penetrationChance = (penetrationValue / armor) * 100;
             }
 
+            // Calculate penetration chance
+            let penetrationChanceGraphClose;
+            if (penetrationClose >= armor) {
+                penetrationChanceGraphClose = 100;
+            } else {
+                penetrationChanceGraphClose = (penetrationClose / armor) * 100;
+            }
+
+            let penetrationChanceGraphMid;
+            if (penetrationMiddle >= armor) {
+                penetrationChanceGraphMid = 100;
+            } else {
+                penetrationChanceGraphMid = (penetrationMiddle / armor) * 100;
+            }
+
+            let penetrationChanceGraphFar;
+            if (penetrationFar >= armor) {
+                penetrationChanceGraphFar = 100;
+            } else {
+                penetrationChanceGraphFar = (penetrationFar / armor) * 100;
+            }
+
             // Calculate shots and time to kill the enemy tank
             let shotsToKill = 0;
+            let successfulShots = 0;
             let remainingHealth = healthPoints;
 
             while (remainingHealth > 0) {
                 let penetrationRoll = Math.random() * 100;
+                shotsToKill++;
                 if (penetrationRoll <= penetrationChance) {
                     remainingHealth -= damage;
-                    shotsToKill++;
+                    successfulShots++;
                 }
             }
 
@@ -112,25 +135,48 @@
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = `
                 <p>Penetration Chance: ${penetrationChance.toFixed(2)}%</p>
-                <p>Shots to Kill: ${shotsToKill}</p>
+                <p>Shots to Kill: ${successfulShots}</p>
                 <p>Time to Kill: ${timeToKill.toFixed(2)} seconds</p>
             `;
 
-            // Set input values to form and submit form
-            document.getElementById("armorFront").value = armorFront;
-            document.getElementById("armorSide").value = armorSide;
-            document.getElementById("armorBack").value = armorBack;
-            document.getElementById("healthPoints").value = healthPoints;
-            document.getElementById("range").value = range;
-            document.getElementById("attackAngle").value = attackAngle;
-            document.getElementById("penetrationClose").value = penetrationClose;
-            document.getElementById("penetrationMiddle").value = penetrationMiddle;
-            document.getElementById("penetrationFar").value = penetrationFar;
-            document.getElementById("damage").value = damage;
-            document.getElementById("roundsPerMinute").value = roundsPerMinute;
-            document.getElementById("resultsForm").submit();
+            // Create the penetration chance graph
+            const penetrationChartData = {
+                labels: [0, 20, 40, range],
+                datasets: [{
+                    label: 'Penetration Chance',
+                    data: [penetrationChanceGraphClose, penetrationChanceGraphClose, penetrationChanceGraphMid, penetrationChanceGraphFar],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1,
+                    fill: false,
+                }]
+            };
+
+            const chartOptions = {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Range'
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Penetration Chance (%)'
+                        },
+                        min: 0,
+                        max: 100,
+                    }
+                }
+            };
+
+            const ctx = document.getElementById("penetrationChart").getContext("2d");
+            new Chart(ctx, {
+                type: 'line',
+                data: penetrationChartData,
+                options: chartOptions,
+            });
         }
     </script>
 </body>
 </html>
-
