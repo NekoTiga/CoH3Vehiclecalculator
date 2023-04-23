@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tank Penetration Calculator</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="armor-stats">
+            <h3>Armor Stats</h3>
+            Armor Front: <input type="number" id="armorFront" value="<?php echo htmlspecialchars($_POST['armorFront'] ?? '') ?>"><br>
+            Armor Side: <input type="number" id="armorSide" value="<?php echo htmlspecialchars($_POST['armorSide'] ?? '') ?>"><br>
+            Armor Back: <input type="number" id="armorBack" value="<?php echo htmlspecialchars($_POST['armorBack'] ?? '') ?>"><br>
+            Health Points: <input type="number" id="healthPoints" value="<?php echo htmlspecialchars($_POST['healthPoints'] ?? '') ?>">
+        </div>
+
+        <div class="attack-stats">
+            <h3>Attack Stats</h3>
+            Range: <input type="number" id="range" value="<?php echo htmlspecialchars($_POST['range'] ?? '') ?>"><br>
+            Attack Angle: <select id="attackAngle">
+                <option value="front"<?php if ($_POST['attackAngle'] == 'front') echo ' selected' ?>>Front</option>
+                <option value="side"<?php if ($_POST['attackAngle'] == 'side') echo ' selected' ?>>Side</option>
+                <option value="back"<?php if ($_POST['attackAngle'] == 'back') echo ' selected' ?>>Back</option>
+            </select><br>
+            Penetration Close: <input type="number" id="penetrationClose" value="<?php echo htmlspecialchars($_POST['penetrationClose'] ?? '') ?>"><br>
+            Penetration Middle: <input type="number" id="penetrationMiddle" value="<?php echo htmlspecialchars($_POST['penetrationMiddle'] ?? '') ?>"><br>
+            Penetration Far: <input type="number" id="penetrationFar" value="<?php echo htmlspecialchars($_POST['penetrationFar'] ?? '') ?>"><br>
+            Damage: <input type="number" id="damage" value="<?php echo htmlspecialchars($_POST['damage'] ?? '') ?>"><br>
+            Rounds per minute: <input type="number" id="roundsPerMinute" value="<?php echo htmlspecialchars($_POST['roundsPerMinute'] ?? '') ?>">
+        </div>
+    </div>
+
+    <div class="simulate">
+        <button id="simulateButton" onclick="simulate()">Simulate</button>
+    </div>
+
+    <div id="results">
+        <?php if ($_SERVER['REQUEST_METHOD'] == 'POST') { ?>
+        <p>Penetration Chance: <?php echo $penetrationChance ?>%</p>
+        <p>Shots to Kill: <?php echo $shotsToKill ?></p>
+        <p>Time to Kill: <?php echo $timeToKill ?> seconds</p>
+        <?php } ?>
+    </div>
+
+    <script>
+        function simulate() {
+            // Get input values
+            const armorFront = parseInt(document.getElementById("armorFront").value);
+            const armorSide = parseInt(document.getElementById("armorSide").value);
+            const armorBack = parseInt(document.getElementById("armorBack").value);
+            const healthPoints = parseInt(document.getElementById("healthPoints").value);
+            const range = parseInt(document.getElementById("range").value);
+            const attackAngle = document.getElementById("attackAngle").value;
+            const penetrationClose = parseInt(document.getElementById("penetrationClose").value);
+            const penetrationMiddle = parseInt(document.getElementById("penetrationMiddle").value);
+            const penetrationFar = parseInt(document.getElementById("penetrationFar").value);
+            const damage = parseInt(document.getElementById("damage").value);
+            const roundsPerMinute = parseInt(document.getElementById("roundsPerMinute").value);
+
+            // Calculate armor stat based on attack angle
+            let armor;
+            if (attackAngle === 'front') {
+                armor = armorFront;
+            } else if (attackAngle === 'side') {
+                armor = armorSide;
+            } else {
+                armor = armorBack;
+            }
+
+            // Calculate penetration based on range
+            let penetrationValue;
+            if (range <= 0.2 * range) {
+                penetrationValue = penetrationClose;
+            } else if (range <= 0.5 * range) {
+                penetrationValue = penetrationMiddle;
+            } else {
+                penetrationValue = penetrationFar;
+            }
+
+            // Calculate penetration chance
+            let penetrationChance;
+            if (penetrationValue >= armor) {
+                penetrationChance = 100;
+            } else {
+                penetrationChance = (penetrationValue / armor) * 100;
+            }
+
+            // Calculate shots and time to kill the enemy tank
+            let shotsToKill = 0;
+            let remainingHealth = healthPoints;
+
+            while (remainingHealth > 0) {
+                let penetrationRoll = Math.random() * 100;
+                if (penetrationRoll <= penetrationChance) {
+                    remainingHealth -= damage;
+                    shotsToKill++;
+                }
+            }
+
+            const timeToKill = (shotsToKill / roundsPerMinute) * 60;
+
+            // Display results
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = `
+                <p>Penetration Chance: ${penetrationChance.toFixed(2)}%</p>
+                <p>Shots to Kill: ${shotsToKill}</p>
+                <p>Time to Kill: ${timeToKill.toFixed(2)} seconds</p>
+            `;
+
+            // Set input values to form and submit form
+            document.getElementById("armorFront").value = armorFront;
+            document.getElementById("armorSide").value = armorSide;
+            document.getElementById("armorBack").value = armorBack;
+            document.getElementById("healthPoints").value = healthPoints;
+            document.getElementById("range").value = range;
+            document.getElementById("attackAngle").value = attackAngle;
+            document.getElementById("penetrationClose").value = penetrationClose;
+            document.getElementById("penetrationMiddle").value = penetrationMiddle;
+            document.getElementById("penetrationFar").value = penetrationFar;
+            document.getElementById("damage").value = damage;
+            document.getElementById("roundsPerMinute").value = roundsPerMinute;
+            document.getElementById("resultsForm").submit();
+        }
+    </script>
+</body>
+</html>
+
