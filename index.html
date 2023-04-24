@@ -33,6 +33,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             Armor Side: <input type="number" id="armorSide"><br>
             Armor Back: <input type="number" id="armorBack"><br>
             Health Points: <input type="number" id="healthPoints">
+            Target Size: <input type="number" id="targetSize">
         </div>
 
         <div class="attack-stats">
@@ -48,6 +49,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             Penetration Far: <input type="number" id="penetrationFar"><br>
             Damage: <input type="number" id="damage"><br>
             Rounds per minute: <input type="number" id="roundsPerMinute">
+            Accuracy: <input type="number" id="attackerAccuracy">
         </div>
     </div>
 
@@ -68,6 +70,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             const armorSide = parseInt(document.getElementById("armorSide").value);
             const armorBack = parseInt(document.getElementById("armorBack").value);
             const healthPoints = parseInt(document.getElementById("healthPoints").value);
+            const targetSize = parseInt(document.getElementrange"targetSize").value);
             const range = parseInt(document.getElementById("range").value);
             const attackAngle = document.getElementById("attackAngle").value;
             const penetrationClose = parseInt(document.getElementById("penetrationClose").value);
@@ -75,6 +78,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             const penetrationFar = parseInt(document.getElementById("penetrationFar").value);
             const damage = parseInt(document.getElementById("damage").value);
             const roundsPerMinute = parseInt(document.getElementById("roundsPerMinute").value);
+            const attackerAccuracy = parseInt(document.getElementById("attackerAccuracy").value);
 
             // Calculate armor stat based on attack angle
             let armor;
@@ -126,6 +130,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 penetrationChanceGraphFar = (penetrationFar / armor) * 100;
             }
 
+            // Calculate hitting chance to hit the enemy tank
+            let hittingChance = targetSize * attackerAccuracy
+
             // Calculate shots and time to kill the enemy tank
             let shotsToKill = 0;
             let successfulShots = 0;
@@ -148,6 +155,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <p>Penetration Chance: ${penetrationChance.toFixed(2)}%</p>
                 <p>Shots to Kill: ${successfulShots}</p>
                 <p>Time to Kill: ${timeToKill.toFixed(2)} seconds</p>
+                <p>Hitting chance: ${hittingChance.toFixed(2)} seconds</p>
             `;
 
             // Create the penetration chance graph
