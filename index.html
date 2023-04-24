@@ -70,7 +70,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             const armorSide = parseInt(document.getElementById("armorSide").value);
             const armorBack = parseInt(document.getElementById("armorBack").value);
             const healthPoints = parseInt(document.getElementById("healthPoints").value);
-            const targetSize = parseInt(document.getElementrange"targetSize").value);
+            const targetSize = parseInt(document.getElementById("targetSize").value);
             const range = parseInt(document.getElementById("range").value);
             const attackAngle = document.getElementById("attackAngle").value;
             const penetrationClose = parseInt(document.getElementById("penetrationClose").value);
@@ -155,7 +155,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <p>Penetration Chance: ${penetrationChance.toFixed(2)}%</p>
                 <p>Shots to Kill: ${successfulShots}</p>
                 <p>Time to Kill: ${timeToKill.toFixed(2)} seconds</p>
-                <p>Hitting chance: ${hittingChance.toFixed(2)} seconds</p>
+                <p>Hitting chance: ${hittingChance.toFixed(2)}%</p>
             `;
 
             // Create the penetration chance graph
